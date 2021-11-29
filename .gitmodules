@@ -1,0 +1,3 @@
+[submodule "gh-members"]
+	path = gh-members
+	url = https://github.com/alu0101228587/gh-members.git
