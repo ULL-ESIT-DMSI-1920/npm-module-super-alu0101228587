@@ -154,3 +154,116 @@ shell.exec(`gh api graphql --paginate -f query='${getRepoContent(owner, repoName
 Estamos haciendo uso del comando _gh api_ con la opción para GraphQL. Le estamos indicando que no queremos forzar la consulta (_-f_) y en el query estamos insertando nuestra tercera consulta, a la que le estamos pasando dos variables que previamente hemos cargado con la organización y el nombre de un repositorio.
 
 Esta consulta a secas nos devuelve un objeto JSON que aún debe ser filtrado con JQuery (_--jq_).
+
+
+### **Tests con Mocha y Chai**
+
+Antes de publicar nuestro módulo debemos hacerle ciertos tests. En este caso se los haremos únicamente a las funciones exportadas desde el fichero _members.js_.
+
+Para esto utilizaremos los módulos Mocha y Chai. Los añadimos a las _devDependencies_, los instalamos con _npm install_ y añadimos el script de tests:
+
+```json
+"scripts": {
+    "test": "mocha --reporter spec"
+}
+```
+
+Ahora, tendremos que escribir los tests en sí. Según la documentación de Chai debemos crear un directorio _test_ donde crearemos un fichero con el mismo nombre que el que exporta las funciones de nuestro proyecto (_members.js_ en nuestro caso).
+Los tests unitarios tienen bloques descriptivos anidados unos dentro de otros. Si nos fijamos bien, no son más que funciones que toman como primer parámetro un string con una descripción breve, y como segundo parámetro una función que puede contener otro bloque descriptivo o un test en sí con la siguiente semántica:
+
+```js
+funcionExportada(argumentos...).should.equal(valor)
+```
+
+Esta semántica permite unos tests muy legibles. Podemos leer que "La _funciónExportada_ debería ser igual a _valor_". Chai permite otras comparaciones (desigualdad, por ejemplo), la negación, y valores predefinidos.
+
+Finalmente, nuestros tests quedan de la siguiente forma:
+
+```js
+// Lista de miebros de la organización
+const memberList = "Este string es muy largo";
+
+// Lista de repositorios de la organización
+const repoList = "Este string es aún más largo";
+
+const reposAndMembers = memberList + repoList;
+
+describe('Gets a:', function() {
+    it('\t - List of organization members', function() {
+        orgMembers("ULL-ESIT-DMSI-1920", null).should.equal(memberList);
+    });
+
+    it('\t - List of organization members and repositories', function() {
+        orgMembers("ULL-ESIT-DMSI-1920", "-r").should.equal(reposAndMembers);
+    });
+});
+```
+
+De esta forma, si ejecutamos los tests con _npm test_ obtendremos la
+
+```
+> @alu0101228587/gh-members@1.1.4 test /home/usuario/Documents/gh-members-gql
+> mocha --reporter spec
+
+  Gets a:
+
+-- Members of ULL-ESIT-DMSI-1920 --
+
+Casiano Rodriguez-Leon
+Casiano
+Jaime Simeón Palomar Blumenthal
+Antonella García
+Sergio P
+Laura Manzini
+
+    ✔    - List of organization members (566ms)
+
+-- Members of ULL-ESIT-DMSI-1920 --
+
+Casiano Rodriguez-Leon
+Casiano
+Jaime Simeón Palomar Blumenthal
+Antonella García
+Sergio P
+Laura Manzini
+
+-- Repositories of ULL-ESIT-DMSI-1920 --
+
+ull-esit-dmsi-1920.github.io
+react-apollo
+graphql-js
+...
+prueba-laura-funciona
+gh-teresa-repo-rename
+pruebaTeresa
+
+    ✔    - List of organization members and repositories (1080ms)
+
+  2 passing (2s)
+```
+
+Nuestros tests han tenido éxito. Sólo falta formalizar la documentación y la versión final de nuestro módulo estaría listo.
+
+
+### **Documentación con JsDoc**
+
+JsDoc es una herramienta muy cómoda que genera documentación estandarizada en formato web a partir de nuestros comentarios de código y _REDADME.md_. Para utilizarla debemos añadirla a nuestras _devDependencies_ e instalarla con _npm install_.
+
+Hay que tener en cuenta que JsDoc requiere una sintaxis específica para que interprete correctamente nuestros comentarios.
+
+```js
+/** 
+ * Returns list of members. If repo != null also a list of repositories
+ * @param {string} orgName - Owner
+ * @param {string} repo - If != null returns repositories
+*/
+function getOrgMembers(orgName, repo) {
+    // ...
+    // Código de la función
+    // ...
+}
+```
+
+El comentario se debe de situar justo encima de las funciones que lo requieran, y debe estar encorchetado por _/** Comentario */_. Cada línea debe empezar por un asterisco y podemos utilizar ciertas palabras clave como _@constructor_ o _@param_ para indicar que la función es el constructor, o qué argumentos toma. En este caso le hemos indicado a JsDoc tras una breve descripción que la función toma dos argumentos de tipo _string_ y una pequeña descripción de cada uno.
+
+Tras haber hecho esto con todas las funciones de nuestro código que requieran una explicación, ejecutaremos _jsdoc members.js_. Esto crea un directorio _out_ con todos loos ficheros y código CSS, HTML y JavaScript de la web con nuestra documentación.
