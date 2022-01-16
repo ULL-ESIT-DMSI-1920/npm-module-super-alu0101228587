@@ -14,6 +14,7 @@ El objetivo de esta práctica es crear una extensión para el cliente de GitHub 
 4. [Cómo ejecutar las consultas GraphQL en JavaScript](#ejecutar-graphql)
 5. [Tests con Mocha y Chai](#mocha-chai)
 6. [Documentación con JSDOC](#jsdoc)
+7. [Pruebas de producción](#prod-test)
 
 
 ### **¿Por qué GraphQL?** <a name="por-que-graphql"/>
@@ -271,7 +272,7 @@ El comentario se debe de situar justo encima de las funciones que lo requieran, 
 Tras haber hecho esto con todas las funciones de nuestro código que requieran una explicación, ejecutaremos _jsdoc members.js_. Esto crea un directorio _out_ con todos loos ficheros y código CSS, HTML y JavaScript de la web con nuestra documentación.
 
 
-### **Pruebas de producción**
+### **Pruebas de producción** <a name="prod-test"/>
 
 El objetivo de estas pruebas concretas serán que, cada vez que hagamos un push o un pull, se instalen todas las dependencias desde cero y se ejecuten los tests en un docker para comprobar que todo funciona correctamente.
 
