@@ -12,6 +12,8 @@ El objetivo de esta práctica es crear una extensión para el cliente de GitHub 
 2. [Estructura de una operación GraphQL](#estructura-graphql)
 3. [Cómo insertar las consultas en un ejecutable JavaScript](#insertar-graphql)
 4. [Cómo ejecutar las consultas GraphQL en JavaScript](#ejecutar-graphql)
+5. [Tests con Mocha y Chai](#mocha-chai)
+6. [Documentación con JSDOC](#jsdoc)
 
 
 ### **¿Por qué GraphQL?** <a name="por-que-graphql"/>
@@ -156,7 +158,7 @@ Estamos haciendo uso del comando _gh api_ con la opción para GraphQL. Le estamo
 Esta consulta a secas nos devuelve un objeto JSON que aún debe ser filtrado con JQuery (_--jq_).
 
 
-### **Tests con Mocha y Chai**
+### **Tests con Mocha y Chai** <a name="mocha-chai"/>
 
 Antes de publicar nuestro módulo debemos hacerle ciertos tests. En este caso se los haremos únicamente a las funciones exportadas desde el fichero _members.js_.
 
@@ -245,7 +247,7 @@ pruebaTeresa
 Nuestros tests han tenido éxito. Sólo falta formalizar la documentación y la versión final de nuestro módulo estaría listo.
 
 
-### **Documentación con JsDoc**
+### **Documentación con JsDoc** <a name="jsdoc"/>
 
 JsDoc es una herramienta muy cómoda que genera documentación estandarizada en formato web a partir de nuestros comentarios de código y _REDADME.md_. Para utilizarla debemos añadirla a nuestras _devDependencies_ e instalarla con _npm install_.
 
@@ -267,3 +269,41 @@ function getOrgMembers(orgName, repo) {
 El comentario se debe de situar justo encima de las funciones que lo requieran, y debe estar encorchetado por _/** Comentario */_. Cada línea debe empezar por un asterisco y podemos utilizar ciertas palabras clave como _@constructor_ o _@param_ para indicar que la función es el constructor, o qué argumentos toma. En este caso le hemos indicado a JsDoc tras una breve descripción que la función toma dos argumentos de tipo _string_ y una pequeña descripción de cada uno.
 
 Tras haber hecho esto con todas las funciones de nuestro código que requieran una explicación, ejecutaremos _jsdoc members.js_. Esto crea un directorio _out_ con todos loos ficheros y código CSS, HTML y JavaScript de la web con nuestra documentación.
+
+
+### **Pruebas de producción**
+
+El objetivo de estas pruebas concretas serán que, cada vez que hagamos un push o un pull, se instalen todas las dependencias desde cero y se ejecuten los tests en un docker para comprobar que todo funciona correctamente.
+
+En primer lugar, debemos crear nuestro fichero yaml en el directorio _.github/workflows/node.js.yml_, siendo _node.js.yml_ nuestro fichero. Este se obtuvo de una plantilla para nodeJS de GitHub, y contiene lo siguiente:
+
+```yml
+name: Node.js CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm test
+      env:
+        GITHUB_TOKEN: ${{secrets.GH_TOKEN}}
+```
+
+En primer lugar, en el bloque _on_ definimos qué acciones dispararán las instrucciones siguientes. En nuestro caso son los push y las solicitudes de pull en la rama master. Luego, en el bloque _jobs_ definiremos las acciones en sí.
+
+En un docker con la última versión de ubuntu (_runs-on: ubuntu-latest_) se ejecutan las acciones definidas en el _tag_ V2 del repositorio con las acciones definidas por GitHub _actions/checkout_ para que un flujo de trabajo como el nuestro pueda acceder al docker. Después se instala la versión por defecto de Node, definida en la variable _matrix.node-version_. Finalmente se ejecutan los comandos para instalar las dependencias y ejecutar los tests (_npm ci_ y _npm test_). Además, como se accederá a nuestro repositorio desde una máquina externa, debemos proporcionarle un token de acceso de GitHub que previamente habremos definido en los secretos del repositorio. Esto lo hacemos estableciendo un valor para la variable de entorno _GITHUB_TOKEN_.
